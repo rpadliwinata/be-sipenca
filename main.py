@@ -122,9 +122,9 @@ async def get_me(user: UserOut = Depends(get_current_user)):
     return user
 
 
-# @app.get("/api/pengungsian", response_model=List[PengungsianGet])
-# async def list_pengungsian(user: UserOut = Depends(get_current_user)):
-
+@app.get("/api/pengungsian", response_model=List[PengungsianGet])
+async def list_pengungsian(user: UserOut = Depends(get_current_user)):
+    
 
 
 @app.post("/api/pengungsian/daftar", response_model=PengungsianOut)
