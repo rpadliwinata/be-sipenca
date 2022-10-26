@@ -1,10 +1,10 @@
 from typing import Union
 from pydantic import BaseModel
-from const import PROVINSI, Base
+from .const import Base
 
 
 class AlamatDB(Base):
-    provinsi: PROVINSI
+    provinsi: str
     kab_kot: str
     kecamatan: str
     kelurahan: str
@@ -14,7 +14,7 @@ class AlamatDB(Base):
 
 
 class AlamatOut(BaseModel):
-    provinsi: PROVINSI
+    provinsi: str
     kab_kot: str
     kecamatan: str
     kelurahan: str

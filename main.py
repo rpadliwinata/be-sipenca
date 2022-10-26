@@ -4,6 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import ValidationError
+from schemas.alamat import AlamatDB
 from schemas.user import UserAuth, UserOut, UserDB
 from schemas.profil import ProfilDB
 from schemas.pengungsian import *
@@ -122,12 +123,7 @@ async def get_me(user: UserOut = Depends(get_current_user)):
     return user
 
 
-@app.get("/api/pengungsian", response_model=List[PengungsianGet])
-async def list_pengungsian(user: UserOut = Depends(get_current_user)):
-    
-
-
-@app.post("/api/pengungsian/daftar", response_model=PengungsianOut)
+@app.post("/api/pengungsian/daftar", response_model=PengungsianIn)
 async def daftar_pengungsian(data: PengungsianIn, user: UserOut = Depends(get_current_user)):
     if user.role != "pengelola":
         raise HTTPException(
@@ -142,11 +138,24 @@ async def daftar_pengungsian(data: PengungsianIn, user: UserOut = Depends(get_cu
             detail="Data already exist"
         )
     
+    new_alamat = {
+        'uuid_': str(uuid4()),
+        'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+        'created_by': user.uuid_,
+        'provinsi': data.alamat.provinsi,
+        'kab_kot': data.alamat.kab_kot,
+        'kecamatan': data.alamat.kecamatan,
+        'kelurahan': data.alamat.kelurahan,
+        'rw': data.alamat.rw,
+        'rt': data.alamat.rt,
+        'nomor': data.alamat.nomor,
+    }
+    
     new_pengungsian = {
         'uuid_': str(uuid4()),
         'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
         'created_by': user.uuid_,
-        'alamat': data.alamat,
+        'alamat': data.alamat.dict(),
         'nama_tempat': data.nama_tempat,
         'kapasitas_tempat': data.kapasitas_tempat
     }
@@ -161,6 +170,7 @@ async def daftar_pengungsian(data: PengungsianIn, user: UserOut = Depends(get_cu
     }
     
     try:
+        validated_new_alamat = AlamatDB(**new_alamat)
         validated_new_pengelola = PengelolaDB(**new_pengelola)
         validated_new_pengungsian = PengungsianDB(**new_pengungsian)
     except ValidationError:
@@ -168,6 +178,7 @@ async def daftar_pengungsian(data: PengungsianIn, user: UserOut = Depends(get_cu
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid data"
         )
+    db_alamat.put(new_alamat)
     db_pengelola.put(new_pengelola)
     db_pengungsian.put(new_pengungsian)
     
@@ -199,9 +210,9 @@ async def upload_foto_pengungsian(uuid_pengungsian: str, img: UploadFile, user: 
     return pengungsian.dict()
 
 
-@app.post("/api/pengungsian/pengelola", response_model=PengelolaAdd)
-async def tambah_pengelola(data: PengelolaAdd, user: UserOut = Depends(get_current_user)):
-    req_pengelola = db_user.fetch({'username': data.username})
+@app.post("/api/pengungsian/pengelola", response_model=PengelolaDB)
+async def tambah_pengelola(username: str, user: UserOut = Depends(get_current_user)):
+    req_pengelola = db_user.fetch({'username': username})
     if len(req_pengelola.items) == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -221,7 +232,7 @@ async def tambah_pengelola(data: PengelolaAdd, user: UserOut = Depends(get_curre
         'created_by': UUID(user.uuid_),
         'pengungsian': UUID(req_pengungsian.items[0]['uuid_']),
         'pengelola': UUID(req_pengelola.items[0]['uuid_']),
-        'is_owner': data.is_owner
+        'is_owner': False
     }
     
     try:
@@ -237,7 +248,7 @@ async def tambah_pengelola(data: PengelolaAdd, user: UserOut = Depends(get_curre
             detail="Invalid value"
         )
     
-    return data.dict()
+    return new_pengelola
 
 
 @app.get("/api/pengungsian/gambar")
@@ -251,3 +262,34 @@ async def get_image(user: UserOut = Depends(get_current_user)):
     req_gambar = drive_pengungsian.get(req_pengungsian.items[0]['gambar_tempat'])
 
     return StreamingResponse(req_gambar.iter_chunks(4096), media_type="image/jpg")
+
+# {
+#   "alamat": {
+#     "provinsi": "Jawa Barat",
+#     "kab_kot": "Bandung",
+#     "kecamatan": "Cinambo",
+#     "kelurahan": "Cisaranten Wetan",
+#     "rw": "01",
+#     "rt": "01",
+#     "nomor": "71"
+#   },
+#   "nama_tempat": "Rumah Saya",
+#   "kapasitas_tempat": 30
+# }
+
+@app.get("/clear")
+async def clear_db():
+    req_pengungsian = db_pengungsian.fetch().items
+    req_pengelola = db_pengelola.fetch().items
+    req_alamat = db_alamat.fetch().items
+    
+    for item in req_pengungsian:
+        db_pengungsian.delete(item['key'])
+    
+    for item in req_pengelola:
+        db_pengelola.delete(item['key'])
+    
+    for item in req_alamat:
+        db_alamat.delete(item['key'])
+    
+    return {'message': 'success'}

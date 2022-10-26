@@ -2,17 +2,19 @@ from typing import Union
 from uuid import UUID
 from pydantic import BaseModel
 from .const import Base
+from schemas.alamat import AlamatOut
 
 
 class PengungsianDB(Base):
-    alamat: Union[UUID, str, None] = None
+    alamat: Union[AlamatOut, None] = None
     nama_tempat: str
     kapasitas_tempat: int
     gambar_tempat: Union[str, None] = None
+    is_active: bool = False
 
 
 class PengungsianIn(BaseModel):
-    alamat: Union[UUID, str, None] = None
+    alamat: AlamatOut
     nama_tempat: str
     kapasitas_tempat: int
 
