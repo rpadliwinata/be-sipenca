@@ -123,8 +123,18 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     }
 
 
-# @app.post("/api/profile/", response_model=ProfilIn)
-# async def create_profile(data: ProfilIn, user: UserOut = Depends(get_current_user)):
+@app.post("/api/profile/", response_model=ProfilIn)
+async def create_profile(data: ProfilIn, user: UserOut = Depends(get_current_user)):
+    req_profil = db_profil.fetch({'id_user': user.uuid_})
+    if len(req_profil.items) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profile not found"
+        )
+    
+    updates = data.dict()
+    db_profil.update(updates, req_profil.items[0]['key'])
+    return updates
 
 
 @app.get("/api/me", summary="Get logged in user detail", response_model=UserOut)

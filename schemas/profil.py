@@ -17,8 +17,8 @@ class ProfilDB(Base):
 
 
 class ProfilIn(BaseModel):
-    alamat_user: Union[AlamatOut, None] = None
-    penyakit: Union[UUID, None] = None
+    alamat_user: Union[AlamatOut, str, None] = None
+    penyakit: Union[UUID, str, None] = None
     nama_lengkap: Union[str, None] = None
     kota_lahir: Union[str, None] = None
     tanggal_lahir: Union[date, str, None] = None
