@@ -123,6 +123,18 @@ async def get_me(user: UserOut = Depends(get_current_user)):
     return user
 
 
+@app.get("/api/pengungsian", response_model=List[PengungsianOut])
+async def get_pengungsian(user: UserOut = Depends(get_current_user)):
+    if user.role == "pengelola":
+        req_pengelola = db_pengelola.fetch({'pengelola': user.uuid_})
+        if len(req_pengelola.items) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Data not found"
+            )
+        res = [item for item in req_pengelola.items]
+
+
 @app.post("/api/pengungsian/daftar", response_model=PengungsianIn)
 async def daftar_pengungsian(data: PengungsianIn, user: UserOut = Depends(get_current_user)):
     if user.role != "pengelola":
