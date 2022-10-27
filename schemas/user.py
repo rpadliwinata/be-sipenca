@@ -35,8 +35,6 @@ class UserOut(BaseModel):
     uuid_: str
     username: str
     email: EmailStr
-    first_name: Union[str, None] = None
-    last_name: Union[str, None] = None
     is_active: Union[bool, None] = False
     role: Union[str, None] = None
 

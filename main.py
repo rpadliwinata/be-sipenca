@@ -2,11 +2,11 @@ from typing import List
 from fastapi import FastAPI, status, HTTPException, File, UploadFile, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, RedirectResponse
 from pydantic import ValidationError
 from schemas.alamat import AlamatDB
 from schemas.user import UserAuth, UserOut, UserDB
-from schemas.profil import ProfilDB
+from schemas.profil import ProfilDB, ProfilIn
 from schemas.pengungsian import *
 from schemas.pengelola import *
 from schemas.token import TokenSchema
@@ -37,6 +37,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+@app.get("/")
+async def redirect_docs():
+    return RedirectResponse("https://0f9vta.deta.dev/docs")
 
 
 @app.post("/api/signup", summary="Create new user", response_model=UserOut)
@@ -118,12 +122,17 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         'refresh_token': create_refresh_token(req_user['uuid_'])
     }
 
+
+# @app.post("/api/profile/", response_model=ProfilIn)
+# async def create_profile(data: ProfilIn, user: UserOut = Depends(get_current_user)):
+
+
 @app.get("/api/me", summary="Get logged in user detail", response_model=UserOut)
 async def get_me(user: UserOut = Depends(get_current_user)):
     return user
 
 
-@app.get("/api/pengungsian", response_model=List[PengungsianOut])
+@app.get("/api/pengungsian")
 async def get_pengungsian(user: UserOut = Depends(get_current_user)):
     if user.role == "pengelola":
         req_pengelola = db_pengelola.fetch({'pengelola': user.uuid_})
@@ -132,7 +141,28 @@ async def get_pengungsian(user: UserOut = Depends(get_current_user)):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Data not found"
             )
-        res = [item for item in req_pengelola.items]
+        pengungsian = [item['pengungsian'] for item in req_pengelola.items]
+        req_pengungsian = [db_pengungsian.fetch({'uuid_': item}).items[0] for item in pengungsian]
+        return req_pengungsian
+    else:
+        req_profil = db_profil.fetch({"id_user": user.uuid_})
+        if len(req_profil.items) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found"
+            )
+        profil = req_profil.items[0]
+        kota = profil['alamat']['kab_kot']
+
+        req_pengungsian = db_pengungsian.fetch({'alamat.kab_kot': kota})
+        if len(req_pengungsian.items) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Data not found"
+            )
+        
+        return req_pengungsian.items
+
 
 
 @app.post("/api/pengungsian/daftar", response_model=PengungsianIn)
