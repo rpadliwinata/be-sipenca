@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import FastAPI, status, HTTPException, File, UploadFile, Depends
+from fastapi import FastAPI, status, HTTPException, File, UploadFile, Depends, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, RedirectResponse
@@ -15,6 +15,18 @@ from deps import get_current_user
 from utils import *
 from db import *
 from drive import *
+
+
+router_pengungsian = APIRouter(
+    prefix="/pengungsian",
+    tags=["pengungsian"],
+    dependencies=[Depends(get_current_user)],
+)
+
+router_akun = APIRouter(
+    prefix="/akun",
+    tags=["akun"],
+)
 
 
 app = FastAPI(
@@ -43,7 +55,7 @@ async def redirect_docs():
     return RedirectResponse("https://0f9vta.deta.dev/docs")
 
 
-@app.post("/api/signup", summary="Create new user", response_model=UserOut)
+@router_akun.post("/signup", summary="Create new user", response_model=UserOut)
 async def create_user(data: UserAuth):
     res = db_user.fetch([{'username': data.username}, {'email': data.email}])
     if len(res.items) != 0:
@@ -99,7 +111,7 @@ async def create_user(data: UserAuth):
 
 
 
-@app.post("/api/login", summary="Create access and refresh token", response_model=TokenSchema)
+@router_akun.post("/login", summary="Create access and refresh token", response_model=TokenSchema)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     # req_user = [user for user in static_db if user['username'] == form_data.username][0]
     req_user = db_user.fetch({'username': form_data.username})
@@ -123,7 +135,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     }
 
 
-@app.post("/api/profile/", response_model=ProfilIn)
+@router_akun.post("/profile/", response_model=ProfilIn)
 async def create_profile(data: ProfilIn, user: UserOut = Depends(get_current_user)):
     req_profil = db_profil.fetch({'id_user': user.uuid_})
     if len(req_profil.items) == 0:
@@ -138,12 +150,12 @@ async def create_profile(data: ProfilIn, user: UserOut = Depends(get_current_use
     return updates
 
 
-@app.get("/api/me", summary="Get logged in user detail", response_model=UserOut)
+@router_akun.get("/me", summary="Get logged in user detail", response_model=UserOut)
 async def get_me(user: UserOut = Depends(get_current_user)):
     return user
 
 
-@app.get("/api/pengungsian", response_model=List[PengungsianGet])
+@router_pengungsian.get("/", response_model=List[PengungsianGet])
 async def get_pengungsian(user: UserOut = Depends(get_current_user)):
     if user.role == "pengelola":
         req_pengelola = db_pengelola.fetch({'pengelola': user.uuid_})
@@ -176,7 +188,7 @@ async def get_pengungsian(user: UserOut = Depends(get_current_user)):
 
 
 
-@app.post("/api/pengungsian/daftar", response_model=PengungsianIn)
+@router_pengungsian.post("/daftar", response_model=PengungsianIn)
 async def daftar_pengungsian(data: PengungsianIn, user: UserOut = Depends(get_current_user)):
     if user.role != "pengelola":
         raise HTTPException(
@@ -238,7 +250,7 @@ async def daftar_pengungsian(data: PengungsianIn, user: UserOut = Depends(get_cu
     return validated_new_pengungsian
 
 
-@app.post("/api/pengungsian/gambar", response_model=PengungsianOut)
+@router_pengungsian.post("/gambar", response_model=PengungsianOut)
 async def upload_foto_pengungsian(uuid_pengungsian: str, img: UploadFile, user: UserOut = Depends(get_current_user)):
     # req_pengungsian = db_pengungsian.fetch({'created_by': str(user.uuid_)})
     req_pengungsian = db_pengungsian.fetch({'uuid_': uuid_pengungsian})
@@ -263,7 +275,7 @@ async def upload_foto_pengungsian(uuid_pengungsian: str, img: UploadFile, user: 
     return pengungsian
 
 
-@app.post("/api/pengungsian/pengelola", response_model=PengelolaOut)
+@router_pengungsian.post("/pengelola", response_model=PengelolaOut)
 async def tambah_pengelola(data: PengelolaAdd, user: UserOut = Depends(get_current_user)):
     req_pengelola = db_user.fetch({'username': data.username})
     if len(req_pengelola.items) == 0:
@@ -304,7 +316,7 @@ async def tambah_pengelola(data: PengelolaAdd, user: UserOut = Depends(get_curre
     return new_pengelola
 
 
-@app.get("/api/pengungsian/gambar")
+@router_pengungsian.get("/gambar")
 async def get_image(user: UserOut = Depends(get_current_user)):
     req_pengungsian = db_pengungsian.fetch({'created_by': str(user.uuid_)})
     if len(req_pengungsian.items) == 0:
@@ -315,7 +327,7 @@ async def get_image(user: UserOut = Depends(get_current_user)):
     req_gambar = drive_pengungsian.get(req_pengungsian.items[0]['gambar_tempat'])
 
     return StreamingResponse(req_gambar.iter_chunks(4096), media_type="image/jpg")
-    
+
 
 @app.get("/clear")
 async def clear_db():
@@ -333,3 +345,14 @@ async def clear_db():
         db_alamat.delete(item['key'])
     
     return {'message': 'success'}
+app.include_router(
+    router_akun,
+    prefix="/api",
+    tags=["akun"],
+)
+
+app.include_router(
+    router_pengungsian,
+    prefix="/api",
+    tags=["pengungsian"],
+)
