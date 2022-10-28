@@ -133,6 +133,7 @@ async def create_profile(data: ProfilIn, user: UserOut = Depends(get_current_use
         )
     
     updates = data.dict()
+    updates['tanggal_lahir'] = updates['tanggal_lahir'].strftime("%d/%m/%Y")
     db_profil.update(updates, req_profil.items[0]['key'])
     return updates
 
@@ -142,7 +143,7 @@ async def get_me(user: UserOut = Depends(get_current_user)):
     return user
 
 
-@app.get("/api/pengungsian")
+@app.get("/api/pengungsian", response_model=List[PengungsianGet])
 async def get_pengungsian(user: UserOut = Depends(get_current_user)):
     if user.role == "pengelola":
         req_pengelola = db_pengelola.fetch({'pengelola': user.uuid_})
@@ -162,7 +163,7 @@ async def get_pengungsian(user: UserOut = Depends(get_current_user)):
                 detail="Profile not found"
             )
         profil = req_profil.items[0]
-        kota = profil['alamat']['kab_kot']
+        kota = profil['alamat_user']['kab_kot']
 
         req_pengungsian = db_pengungsian.fetch({'alamat.kab_kot': kota})
         if len(req_pengungsian.items) == 0:
@@ -259,12 +260,12 @@ async def upload_foto_pengungsian(uuid_pengungsian: str, img: UploadFile, user: 
     pengungsian['gambar_tempat'] = filename
     db_pengungsian.update(update, pengungsian['key'])
     
-    return pengungsian.dict()
+    return pengungsian
 
 
-@app.post("/api/pengungsian/pengelola", response_model=PengelolaDB)
-async def tambah_pengelola(username: str, user: UserOut = Depends(get_current_user)):
-    req_pengelola = db_user.fetch({'username': username})
+@app.post("/api/pengungsian/pengelola", response_model=PengelolaOut)
+async def tambah_pengelola(data: PengelolaAdd, user: UserOut = Depends(get_current_user)):
+    req_pengelola = db_user.fetch({'username': data.username})
     if len(req_pengelola.items) == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -314,20 +315,7 @@ async def get_image(user: UserOut = Depends(get_current_user)):
     req_gambar = drive_pengungsian.get(req_pengungsian.items[0]['gambar_tempat'])
 
     return StreamingResponse(req_gambar.iter_chunks(4096), media_type="image/jpg")
-
-# {
-#   "alamat": {
-#     "provinsi": "Jawa Barat",
-#     "kab_kot": "Bandung",
-#     "kecamatan": "Cinambo",
-#     "kelurahan": "Cisaranten Wetan",
-#     "rw": "01",
-#     "rt": "01",
-#     "nomor": "71"
-#   },
-#   "nama_tempat": "Rumah Saya",
-#   "kapasitas_tempat": 30
-# }
+    
 
 @app.get("/clear")
 async def clear_db():

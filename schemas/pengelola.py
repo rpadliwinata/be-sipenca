@@ -10,6 +10,13 @@ class PengelolaDB(Base):
     is_owner: bool
 
 
+class PengelolaOut(BaseModel):
+    pengungsian: Union[UUID, str, None] = None
+    pengelola: UUID
+    is_owner: bool
+
+
 class PengelolaAdd(BaseModel):
+    pengungsian: str
     username: str
     is_owner: bool

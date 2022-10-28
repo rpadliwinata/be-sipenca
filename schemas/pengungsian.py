@@ -28,5 +28,6 @@ class PengungsianOut(BaseModel):
 class PengungsianGet(BaseModel):
     uuid_: str
     nama_tempat: str
-    owner: str
-    alamat: str
+    kapasitas_tempat: int
+    gambar_tempat: Union[str, None] = None
+    is_active: bool = False
