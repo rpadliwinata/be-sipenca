@@ -16,7 +16,7 @@ from db import db_user
 
 
 reusable_oauth = OAuth2PasswordBearer(
-    tokenUrl="/api/login",
+    tokenUrl="/api/akun/login",
     scheme_name="JWT"
 )
 
