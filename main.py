@@ -28,6 +28,12 @@ router_akun = APIRouter(
     tags=["akun"],
 )
 
+router_profil = APIRouter(
+    prefix="/profil",
+    tags=["profil"],
+    dependencies=[Depends(get_current_user)]
+)
+
 
 app = FastAPI(
     title="Sipenca",
@@ -135,8 +141,21 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     }
 
 
-@router_akun.post("/profile/", response_model=ProfilIn)
-async def create_profile(data: ProfilIn, user: UserOut = Depends(get_current_user)):
+@router_profil.get("/", response_model=ProfilIn)
+async def get_profil(user: UserOut = Depends(get_current_user)):
+    req_profil = db_profil.fetch({'id_user': user.uuid_})
+    if len(req_profil.items) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profile not found"
+        )
+    
+    return req_profil.items[0]
+
+
+
+@router_profil.post("/", response_model=ProfilIn)
+async def create_profil(data: ProfilIn, user: UserOut = Depends(get_current_user)):
     req_profil = db_profil.fetch({'id_user': user.uuid_})
     if len(req_profil.items) == 0:
         raise HTTPException(
@@ -345,7 +364,7 @@ async def clear_db():
         db_alamat.delete(item['key'])
     
     return {'message': 'success'}
-    
+
 app.include_router(
     router_akun,
     prefix="/api",
@@ -356,4 +375,10 @@ app.include_router(
     router_pengungsian,
     prefix="/api",
     tags=["pengungsian"],
+)
+
+app.include_router(
+    router_profil,
+    prefix="/api",
+    tags=["profil"]
 )
