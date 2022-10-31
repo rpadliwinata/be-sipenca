@@ -50,7 +50,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 async def redirect_docs():
     return RedirectResponse("https://0f9vta.deta.dev/docs")
 
@@ -329,7 +329,7 @@ async def get_image(user: UserOut = Depends(get_current_user)):
     return StreamingResponse(req_gambar.iter_chunks(4096), media_type="image/jpg")
 
 
-@app.get("/clear")
+@app.get("/clear", include_in_schema=False)
 async def clear_db():
     req_pengungsian = db_pengungsian.fetch().items
     req_pengelola = db_pengelola.fetch().items
@@ -345,6 +345,7 @@ async def clear_db():
         db_alamat.delete(item['key'])
     
     return {'message': 'success'}
+    
 app.include_router(
     router_akun,
     prefix="/api",
