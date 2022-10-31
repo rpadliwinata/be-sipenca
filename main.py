@@ -71,10 +71,16 @@ async def redirect_docs():
 async def create_user(data: UserAuth):
     res = db_user.fetch([{'username': data.username}, {'email': data.email}])
     if len(res.items) != 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User alrady exist"
-        )
+        if res.items[0]['username'] == data.username:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Username already used"
+            )
+        elif res.items[0]['email'] == data.email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already used"
+            )
     
     new_user = {
         'uuid_': str(uuid4()),
@@ -175,7 +181,7 @@ async def create_profil(data: ProfilIn, user: UserOut = Depends(get_current_user
     return updates
 
 
-@router_akun.get("/me", summary="Get logged in user detail", response_model=UserOut)
+@router_akun.get("/me", summary="Get logged in user detail", response_model=UserOut, include_in_schema=False)
 async def get_me(user: UserOut = Depends(get_current_user)):
     return user
 
