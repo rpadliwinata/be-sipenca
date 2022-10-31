@@ -373,7 +373,7 @@ async def clear_db():
 
 
 @router_admin.post("/approve/akun", response_model=UserOut)
-async def approve_akun(uuid_: str, user: Depends(get_current_user)):
+async def approve_akun(uuid_: str, user: UserOut = Depends(get_current_user)):
     req_user = db_user.fetch({'uuid_': uuid_})
     if len(req_user.items) == 0:
         raise HTTPException(
