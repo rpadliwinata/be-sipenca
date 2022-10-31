@@ -34,6 +34,12 @@ router_profil = APIRouter(
     dependencies=[Depends(get_current_user)]
 )
 
+router_admin = APIRouter(
+    prefix="/admin",
+    tags=["admin"],
+    dependencies=[Depends(get_current_user)]
+)
+
 
 app = FastAPI(
     title="Sipenca",
@@ -79,7 +85,7 @@ async def create_user(data: UserAuth):
         'username': data.username,
         'hashed_password': get_hashed_password(data.password),
         'role': data.role,
-        'is_active': False
+        'is_active': False if data.role == "pengelola" else True
     }
     try:
         validated_new_user = UserDB(**new_user)
@@ -364,6 +370,21 @@ async def clear_db():
         db_alamat.delete(item['key'])
     
     return {'message': 'success'}
+
+
+@router_admin.post("/approve/akun", response_model=UserOut)
+async def approve_akun(uuid_: str, user: Depends(get_current_user)):
+    req_user = db_user.fetch({'uuid_': uuid_})
+    if len(req_user.items) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    user = req_user.items[0]
+    user['is_active'] = True
+    db_user.update(user, user['key'])
+    return user
 
 app.include_router(
     router_akun,
