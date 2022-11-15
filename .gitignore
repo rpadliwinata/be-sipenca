@@ -1,4 +1,5 @@
 /__pycache__
 /.deta
 /schemas/__pycache__
+/app/__pycache__
 settings.py
