@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, RedirectResponse
 from pydantic import ValidationError
 from schemas.alamat import AlamatDB
-from schemas.user import UserAuth, UserOut, UserDB
+from schemas.user import UserOut, PengelolaInput
 from schemas.profil import ProfilDB, ProfilIn
 from schemas.pengungsian import *
 from schemas.pengelola import *
@@ -15,17 +15,13 @@ from deps import get_current_user
 from utils import *
 from db import *
 from drive import *
+from app.akun import router as router_akun
 
 
 router_pengungsian = APIRouter(
     prefix="/pengungsian",
     tags=["pengungsian"],
     dependencies=[Depends(get_current_user)],
-)
-
-router_akun = APIRouter(
-    prefix="/akun",
-    tags=["akun"],
 )
 
 router_profil = APIRouter(
@@ -67,102 +63,102 @@ async def redirect_docs():
     return RedirectResponse("https://0f9vta.deta.dev/docs")
 
 
-@router_akun.post("/signup", summary="Create new user", response_model=UserOut)
-async def create_user(data: UserAuth):
-    res = db_user.fetch([{'username': data.username}, {'email': data.email}])
-    if len(res.items) != 0:
-        if res.items[0]['username'] == data.username:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Username already used"
-            )
-        elif res.items[0]['email'] == data.email:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already used"
-            )
+# @router_akun.post("/signup", summary="Create new user", response_model=UserOut)
+# async def create_user(data: UserAuth):
+#     res = db_user.fetch([{'username': data.username}, {'email': data.email}])
+#     if len(res.items) != 0:
+#         if res.items[0]['username'] == data.username:
+#             raise HTTPException(
+#                 status_code=status.HTTP_400_BAD_REQUEST,
+#                 detail="Username already used"
+#             )
+#         elif res.items[0]['email'] == data.email:
+#             raise HTTPException(
+#                 status_code=status.HTTP_400_BAD_REQUEST,
+#                 detail="Email already used"
+#             )
     
-    new_user = {
-        'uuid_': str(uuid4()),
-        'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-        'uuid_': str(uuid4()),
-        'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-        'email': data.email,
-        'username': data.username,
-        'hashed_password': get_hashed_password(data.password),
-        'role': data.role,
-        'is_active': False if data.role == "pengelola" else True
-    }
-    try:
-        validated_new_user = UserDB(**new_user)
-        db_user.put(validated_new_user.dict())
-    except ValidationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid input value"
-        )
-    try:
-        validated_new_user = UserDB(**new_user)
-        db_user.put(validated_new_user.dict())
-    except ValidationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid input value"
-        )
+#     new_user = {
+#         'uuid_': str(uuid4()),
+#         'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+#         'uuid_': str(uuid4()),
+#         'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+#         'email': data.email,
+#         'username': data.username,
+#         'hashed_password': get_hashed_password(data.password),
+#         'role': data.role,
+#         'is_active': False if data.role == "pengelola" else True
+#     }
+#     try:
+#         validated_new_user = UserDB(**new_user)
+#         db_user.put(validated_new_user.dict())
+#     except ValidationError as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             detail="Invalid input value"
+#         )
+#     try:
+#         validated_new_user = UserDB(**new_user)
+#         db_user.put(validated_new_user.dict())
+#     except ValidationError as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             detail="Invalid input value"
+#         )
     
-    new_profile = {
-        'uuid_': str(uuid4()),
-        'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-        'created_by': new_user['uuid_'],
-        'id_user': new_user['uuid_']
-    }
-    try:
-        validated_new_profile = ProfilDB(**new_profile)
-        db_profil.put(new_profile)
-    except ValidationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid input value"
-        )
+#     new_profile = {
+#         'uuid_': str(uuid4()),
+#         'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+#         'created_by': new_user['uuid_'],
+#         'id_user': new_user['uuid_']
+#     }
+#     try:
+#         validated_new_profile = ProfilDB(**new_profile)
+#         db_profil.put(new_profile)
+#     except ValidationError as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             detail="Invalid input value"
+#         )
     
-    return validated_new_user.dict()
+#     return validated_new_user.dict()
 
 
 
-@router_akun.post("/login", summary="Create access and refresh token", response_model=TokenSchema)
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    # req_user = [user for user in static_db if user['username'] == form_data.username][0]
-    req_user = db_user.fetch({'username': form_data.username})
-    if len(req_user.items) == 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username not found"
-        )
+# @router_akun.post("/login", summary="Create access and refresh token", response_model=TokenSchema)
+# async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+#     # req_user = [user for user in static_db if user['username'] == form_data.username][0]
+#     req_user = db_user.fetch({'username': form_data.username})
+#     if len(req_user.items) == 0:
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             detail="Username not found"
+#         )
     
-    req_user = req_user.items[0]
-    hashed_pass = req_user['hashed_password']
-    if not verify_password(form_data.password, hashed_pass):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Wrong password"
-        )
+#     req_user = req_user.items[0]
+#     hashed_pass = req_user['hashed_password']
+#     if not verify_password(form_data.password, hashed_pass):
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             detail="Wrong password"
+#         )
     
-    return {
-        'access_token': create_access_token(req_user['uuid_']),
-        'refresh_token': create_refresh_token(req_user['uuid_'])
-    }
+#     return {
+#         'access_token': create_access_token(req_user['uuid_']),
+#         'refresh_token': create_refresh_token(req_user['uuid_'])
+#     }
 
 
-@router_profil.get("/", response_model=ProfilIn)
-async def get_profil(user: UserOut = Depends(get_current_user)):
-    req_profil = db_profil.fetch({'id_user': user.uuid_})
-    if len(req_profil.items) == 0:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Profile not found"
-        )
+# @router_profil.get("/", response_model=ProfilIn)
+# async def get_profil(user: UserOut = Depends(get_current_user)):
+#     req_profil = db_profil.fetch({'id_user': user.uuid_})
+#     if len(req_profil.items) == 0:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail="Profile not found"
+#         )
     
-    return req_profil.items[0]
+#     return req_profil.items[0]
 
 
 
@@ -181,7 +177,7 @@ async def create_profil(data: ProfilIn, user: UserOut = Depends(get_current_user
     return updates
 
 
-@router_akun.get("/me", summary="Get logged in user detail", response_model=UserOut, include_in_schema=False)
+@router_akun.get("/me", summary="Get logged in user detail", response_model=UserOut)
 async def get_me(user: UserOut = Depends(get_current_user)):
     return user
 
@@ -379,8 +375,8 @@ async def clear_db():
 
 
 @router_admin.post("/approve/akun", response_model=UserOut)
-async def approve_akun(uuid_: str, user: UserOut = Depends(get_current_user)):
-    req_user = db_user.fetch({'uuid_': uuid_})
+async def approve_akun(data: PengelolaInput, user: UserOut = Depends(get_current_user)):
+    req_user = db_user.fetch({'uuid_': data.uuid_})
     if len(req_user.items) == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -389,8 +385,28 @@ async def approve_akun(uuid_: str, user: UserOut = Depends(get_current_user)):
     
     user = req_user.items[0]
     user['is_active'] = True
-    db_user.update(user, user['key'])
+    print(user)
+    print(req_user.items[0]['key'])
+    db_user.update(user, req_user.items[0]['key'])
     return user
+
+
+@router_admin.get("/list/pengelola", response_model=List[UserOut])
+async def list_pengelola(user: UserOut = Depends(get_current_user)):
+    if user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Restricted access"
+        )
+    
+    req_user = db_user.fetch({'role': 'pengelola'})
+    if len(req_user.items) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No data found"
+        )
+    
+    return req_user.items
 
 app.include_router(
     router_akun,
@@ -408,4 +424,10 @@ app.include_router(
     router_profil,
     prefix="/api",
     tags=["profil"]
+)
+
+app.include_router(
+    router_admin,
+    prefix="/api",
+    tags=["admin"]
 )

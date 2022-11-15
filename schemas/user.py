@@ -43,3 +43,7 @@ class UserUpdate(BaseModel):
     email: Union[EmailStr, None] = None
     first_name: Union[str, None] = None
     last_name: Union[str, None] = None
+
+
+class PengelolaInput(BaseModel):
+    uuid_: str
