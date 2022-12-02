@@ -2,9 +2,9 @@ from typing import List
 from fastapi import status, HTTPException, Depends, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import ValidationError
-from schemas.user import UserAuth, UserOut, UserDB
-from schemas.profil import ProfilDB
-from schemas.token import TokenSchema
+from v1.schemas.user import UserAuth, UserOut, UserDB
+from v1.schemas.profil import ProfilDB
+from v1.schemas.token import TokenSchema
 from uuid import uuid4
 from utils import *
 from db import db_user, db_profil
@@ -98,5 +98,10 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         'access_token': create_access_token(req_user['uuid_']),
         'refresh_token': create_refresh_token(req_user['uuid_'])
     }
+
+
+# @router.get("/me", summary="Get logged in user detail", response_model=UserOut)
+# async def get_me(user: UserOut = Depends(get_current_user)):
+#     return user
 
 

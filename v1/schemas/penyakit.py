@@ -1,5 +1,5 @@
 from uuid import UUID
-from const import Base
+from .const import Base
 
 
 class PenyakitDB(Base):

@@ -4,7 +4,7 @@ from datetime import date
 
 from pydantic import BaseModel
 from .const import Base
-from schemas.alamat import AlamatOut
+from v1.schemas.alamat import AlamatOut
 
 
 class ProfilDB(Base):

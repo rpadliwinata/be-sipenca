@@ -2,7 +2,7 @@ from typing import Union
 from uuid import UUID
 from pydantic import BaseModel
 from .const import Base
-from schemas.alamat import AlamatOut
+from v1.schemas.alamat import AlamatOut
 
 
 class PengungsianDB(Base):

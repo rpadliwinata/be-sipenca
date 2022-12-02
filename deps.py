@@ -2,13 +2,12 @@ from typing import Union, Any
 from datetime import datetime
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from uuid import UUID
 
-from schemas.token import TokenPayLoad
+from v1.schemas.token import TokenPayLoad
 from settings import ALGORITHM, JWT_SECRET_KEY
 from jose import jwt
 from pydantic import ValidationError
-from schemas.user import UserOut
+from v1.schemas.user import UserOut
 
 from db import db_user
 
@@ -16,7 +15,7 @@ from db import db_user
 
 
 reusable_oauth = OAuth2PasswordBearer(
-    tokenUrl="/api/akun/login",
+    tokenUrl="/v1/akun/login",
     scheme_name="JWT"
 )
 

@@ -1,40 +1,14 @@
-from typing import List
-from fastapi import FastAPI, status, HTTPException, File, UploadFile, Depends, APIRouter
-from fastapi.security import OAuth2PasswordRequestForm
+from v1.router import router as v1
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, RedirectResponse
-from pydantic import ValidationError
-from schemas.alamat import AlamatDB
-from schemas.user import UserOut, PengelolaInput
-from schemas.profil import ProfilDB, ProfilIn
-from schemas.pengungsian import *
-from schemas.pengelola import *
-from schemas.token import TokenSchema
-from uuid import uuid4
-from deps import get_current_user
+from fastapi.responses import RedirectResponse
 from utils import *
 from db import *
 from drive import *
-from app.akun import router as router_akun
-
-
-router_pengungsian = APIRouter(
-    prefix="/pengungsian",
-    tags=["pengungsian"],
-    dependencies=[Depends(get_current_user)],
-)
-
-router_profil = APIRouter(
-    prefix="/profil",
-    tags=["profil"],
-    dependencies=[Depends(get_current_user)]
-)
-
-router_admin = APIRouter(
-    prefix="/admin",
-    tags=["admin"],
-    dependencies=[Depends(get_current_user)]
-)
+from v1.app.akun import router as router_akun
+from v1.app.profil import router as router_profil
+from v1.app.pengungsian import router as router_pengungsian
+from v1.app.admin import router as router_admin
 
 
 app = FastAPI(
@@ -62,300 +36,6 @@ app.add_middleware(
 async def redirect_docs():
     return RedirectResponse("https://0f9vta.deta.dev/docs")
 
-
-# @router_akun.post("/signup", summary="Create new user", response_model=UserOut)
-# async def create_user(data: UserAuth):
-#     res = db_user.fetch([{'username': data.username}, {'email': data.email}])
-#     if len(res.items) != 0:
-#         if res.items[0]['username'] == data.username:
-#             raise HTTPException(
-#                 status_code=status.HTTP_400_BAD_REQUEST,
-#                 detail="Username already used"
-#             )
-#         elif res.items[0]['email'] == data.email:
-#             raise HTTPException(
-#                 status_code=status.HTTP_400_BAD_REQUEST,
-#                 detail="Email already used"
-#             )
-    
-#     new_user = {
-#         'uuid_': str(uuid4()),
-#         'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-#         'uuid_': str(uuid4()),
-#         'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-#         'email': data.email,
-#         'username': data.username,
-#         'hashed_password': get_hashed_password(data.password),
-#         'role': data.role,
-#         'is_active': False if data.role == "pengelola" else True
-#     }
-#     try:
-#         validated_new_user = UserDB(**new_user)
-#         db_user.put(validated_new_user.dict())
-#     except ValidationError as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             detail="Invalid input value"
-#         )
-#     try:
-#         validated_new_user = UserDB(**new_user)
-#         db_user.put(validated_new_user.dict())
-#     except ValidationError as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             detail="Invalid input value"
-#         )
-    
-#     new_profile = {
-#         'uuid_': str(uuid4()),
-#         'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-#         'created_by': new_user['uuid_'],
-#         'id_user': new_user['uuid_']
-#     }
-#     try:
-#         validated_new_profile = ProfilDB(**new_profile)
-#         db_profil.put(new_profile)
-#     except ValidationError as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             detail="Invalid input value"
-#         )
-    
-#     return validated_new_user.dict()
-
-
-
-# @router_akun.post("/login", summary="Create access and refresh token", response_model=TokenSchema)
-# async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-#     # req_user = [user for user in static_db if user['username'] == form_data.username][0]
-#     req_user = db_user.fetch({'username': form_data.username})
-#     if len(req_user.items) == 0:
-#         raise HTTPException(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             detail="Username not found"
-#         )
-    
-#     req_user = req_user.items[0]
-#     hashed_pass = req_user['hashed_password']
-#     if not verify_password(form_data.password, hashed_pass):
-#         raise HTTPException(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             detail="Wrong password"
-#         )
-    
-#     return {
-#         'access_token': create_access_token(req_user['uuid_']),
-#         'refresh_token': create_refresh_token(req_user['uuid_'])
-#     }
-
-
-# @router_profil.get("/", response_model=ProfilIn)
-# async def get_profil(user: UserOut = Depends(get_current_user)):
-#     req_profil = db_profil.fetch({'id_user': user.uuid_})
-#     if len(req_profil.items) == 0:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail="Profile not found"
-#         )
-    
-#     return req_profil.items[0]
-
-
-
-@router_profil.post("/", response_model=ProfilIn)
-async def create_profil(data: ProfilIn, user: UserOut = Depends(get_current_user)):
-    req_profil = db_profil.fetch({'id_user': user.uuid_})
-    if len(req_profil.items) == 0:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Profile not found"
-        )
-    
-    updates = data.dict()
-    updates['tanggal_lahir'] = updates['tanggal_lahir'].strftime("%d/%m/%Y")
-    db_profil.update(updates, req_profil.items[0]['key'])
-    return updates
-
-
-@router_akun.get("/me", summary="Get logged in user detail", response_model=UserOut)
-async def get_me(user: UserOut = Depends(get_current_user)):
-    return user
-
-
-@router_pengungsian.get("/", response_model=List[PengungsianGet])
-async def get_pengungsian(user: UserOut = Depends(get_current_user)):
-    if user.role == "pengelola":
-        req_pengelola = db_pengelola.fetch({'pengelola': user.uuid_})
-        if len(req_pengelola.items) == 0:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Data not found"
-            )
-        pengungsian = [item['pengungsian'] for item in req_pengelola.items]
-        req_pengungsian = [db_pengungsian.fetch({'uuid_': item}).items[0] for item in pengungsian]
-        return req_pengungsian
-    else:
-        req_profil = db_profil.fetch({"id_user": user.uuid_})
-        if len(req_profil.items) == 0:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Profile not found"
-            )
-        profil = req_profil.items[0]
-        kota = profil['alamat_user']['kab_kot']
-
-        req_pengungsian = db_pengungsian.fetch({'alamat.kab_kot': kota})
-        if len(req_pengungsian.items) == 0:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Data not found"
-            )
-        
-        return req_pengungsian.items
-
-
-
-@router_pengungsian.post("/daftar", response_model=PengungsianIn)
-async def daftar_pengungsian(data: PengungsianIn, user: UserOut = Depends(get_current_user)):
-    if user.role != "pengelola":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized user"
-        )
-
-    req_pengungsian = db_pengungsian.fetch({'nama_tempat': data.nama_tempat})
-    if len(req_pengungsian.items) != 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Data already exist"
-        )
-    
-    new_alamat = {
-        'uuid_': str(uuid4()),
-        'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-        'created_by': user.uuid_,
-        'provinsi': data.alamat.provinsi,
-        'kab_kot': data.alamat.kab_kot,
-        'kecamatan': data.alamat.kecamatan,
-        'kelurahan': data.alamat.kelurahan,
-        'rw': data.alamat.rw,
-        'rt': data.alamat.rt,
-        'nomor': data.alamat.nomor,
-    }
-    
-    new_pengungsian = {
-        'uuid_': str(uuid4()),
-        'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-        'created_by': user.uuid_,
-        'alamat': data.alamat.dict(),
-        'nama_tempat': data.nama_tempat,
-        'kapasitas_tempat': data.kapasitas_tempat
-    }
-
-    new_pengelola = {
-        'uuid_': str(uuid4()),
-        'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-        'created_by': user.uuid_,
-        'pengungsian': new_pengungsian['uuid_'],
-        'pengelola': user.uuid_,
-        'is_owner': True
-    }
-    
-    try:
-        validated_new_alamat = AlamatDB(**new_alamat)
-        validated_new_pengelola = PengelolaDB(**new_pengelola)
-        validated_new_pengungsian = PengungsianDB(**new_pengungsian)
-    except ValidationError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid data"
-        )
-    db_alamat.put(new_alamat)
-    db_pengelola.put(new_pengelola)
-    db_pengungsian.put(new_pengungsian)
-    
-    return validated_new_pengungsian
-
-
-@router_pengungsian.post("/gambar", response_model=PengungsianOut)
-async def upload_foto_pengungsian(uuid_pengungsian: str, img: UploadFile, user: UserOut = Depends(get_current_user)):
-    # req_pengungsian = db_pengungsian.fetch({'created_by': str(user.uuid_)})
-    req_pengungsian = db_pengungsian.fetch({'uuid_': uuid_pengungsian})
-
-    if len(req_pengungsian.items) == 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Data not exist"
-        )
-    
-    file_content = await img.read()
-    filename = f"{req_pengungsian.items[0]['nama_tempat']}_{user.username}.jpg"
-    drive_pengungsian.put(filename, file_content)
-    
-    update = {
-        'gambar_tempat': filename
-    }
-    pengungsian = req_pengungsian.items[0]
-    pengungsian['gambar_tempat'] = filename
-    db_pengungsian.update(update, pengungsian['key'])
-    
-    return pengungsian
-
-
-@router_pengungsian.post("/pengelola", response_model=PengelolaOut)
-async def tambah_pengelola(data: PengelolaAdd, user: UserOut = Depends(get_current_user)):
-    req_pengelola = db_user.fetch({'username': data.username})
-    if len(req_pengelola.items) == 0:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-    
-    req_pengungsian = db_pengungsian.fetch({'created_by': str(user.uuid_)})
-    if len(req_pengungsian.items) == 0:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Item not found"
-        )
-    
-    new_pengelola = {
-        'uuid_': str(uuid4()),
-        'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-        'created_by': UUID(user.uuid_),
-        'pengungsian': UUID(req_pengungsian.items[0]['uuid_']),
-        'pengelola': UUID(req_pengelola.items[0]['uuid_']),
-        'is_owner': False
-    }
-    
-    try:
-        validated_new_pengelola = PengelolaDB(**new_pengelola)
-        new_pengelola['created_by'] = str(new_pengelola['created_by'])
-        new_pengelola['pengungsian'] = str(new_pengelola['pengungsian'])
-        new_pengelola['pengelola'] = str(new_pengelola['pengelola'])
-        db_pengelola.put(new_pengelola)
-    except ValidationError as e:
-        print(e)
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid value"
-        )
-    
-    return new_pengelola
-
-
-@router_pengungsian.get("/gambar")
-async def get_image(user: UserOut = Depends(get_current_user)):
-    req_pengungsian = db_pengungsian.fetch({'created_by': str(user.uuid_)})
-    if len(req_pengungsian.items) == 0:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No records found"
-        )
-    req_gambar = drive_pengungsian.get(req_pengungsian.items[0]['gambar_tempat'])
-
-    return StreamingResponse(req_gambar.iter_chunks(4096), media_type="image/jpg")
-
-
 @app.get("/clear", include_in_schema=False)
 async def clear_db():
     req_pengungsian = db_pengungsian.fetch().items
@@ -374,60 +54,28 @@ async def clear_db():
     return {'message': 'success'}
 
 
-@router_admin.post("/approve/akun", response_model=UserOut)
-async def approve_akun(data: PengelolaInput, user: UserOut = Depends(get_current_user)):
-    req_user = db_user.fetch({'uuid_': data.uuid_})
-    if len(req_user.items) == 0:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-    
-    user = req_user.items[0]
-    user['is_active'] = True
-    print(user)
-    print(req_user.items[0]['key'])
-    db_user.update(user, req_user.items[0]['key'])
-    return user
+app.include_router(v1)
 
+# app.include_router(
+#     router_akun,
+#     prefix="/api",
+#     tags=["akun"],
+# )
 
-@router_admin.get("/list/pengelola", response_model=List[UserOut])
-async def list_pengelola(user: UserOut = Depends(get_current_user)):
-    if user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Restricted access"
-        )
-    
-    req_user = db_user.fetch({'role': 'pengelola'})
-    if len(req_user.items) == 0:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No data found"
-        )
-    
-    return req_user.items
+# app.include_router(
+#     router_pengungsian,
+#     prefix="/api",
+#     tags=["pengungsian"],
+# )
 
-app.include_router(
-    router_akun,
-    prefix="/api",
-    tags=["akun"],
-)
+# app.include_router(
+#     router_profil,
+#     prefix="/api",
+#     tags=["profil"]
+# )
 
-app.include_router(
-    router_pengungsian,
-    prefix="/api",
-    tags=["pengungsian"],
-)
-
-app.include_router(
-    router_profil,
-    prefix="/api",
-    tags=["profil"]
-)
-
-app.include_router(
-    router_admin,
-    prefix="/api",
-    tags=["admin"]
-)
+# app.include_router(
+#     router_admin,
+#     prefix="/api",
+#     tags=["admin"]
+# )

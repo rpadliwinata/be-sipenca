@@ -1,7 +1,6 @@
 from typing import Union
 from uuid import UUID
-from schemas.const import Base
-from schemas.const import Base
+from v1.schemas.const import Base
 from pydantic import BaseModel, EmailStr, Field
 
 
