@@ -3,3 +3,5 @@
 /schemas/__pycache__
 /app/__pycache__
 settings.py
+/v1/__pycache__
+/v1/schemas/__pycache__
