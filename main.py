@@ -1,3 +1,4 @@
+import uvicorn
 from v1.router import router as v1
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,6 +56,9 @@ async def clear_db():
 
 
 app.include_router(v1)
+
+if __name__ == "__main__":
+    uvicorn.run(app)
 
 # app.include_router(
 #     router_akun,
