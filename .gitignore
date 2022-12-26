@@ -5,4 +5,7 @@
 settings.py
 /v1/__pycache__
 /v1/schemas/__pycache__
+/v2/__pycache__
+/v2/app/__pycache__
+/v2/schemas/__pycache__
 private.ppk
