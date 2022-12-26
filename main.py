@@ -1,5 +1,6 @@
 import uvicorn
 from v1.router import router as v1
+from v2.router import router as v2
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
@@ -55,31 +56,8 @@ async def clear_db():
     return {'message': 'success'}
 
 
-app.include_router(v1)
+app.include_router(v2)
 
 if __name__ == "__main__":
     uvicorn.run(app)
 
-# app.include_router(
-#     router_akun,
-#     prefix="/api",
-#     tags=["akun"],
-# )
-
-# app.include_router(
-#     router_pengungsian,
-#     prefix="/api",
-#     tags=["pengungsian"],
-# )
-
-# app.include_router(
-#     router_profil,
-#     prefix="/api",
-#     tags=["profil"]
-# )
-
-# app.include_router(
-#     router_admin,
-#     prefix="/api",
-#     tags=["admin"]
-# )
