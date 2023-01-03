@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from fastapi.encoders import jsonable_encoder
 
 from db import db_pengungsian
 from deps import get_current_user
@@ -21,3 +22,17 @@ async def getAllPengungsian():
         'success': True,
         'message': 'Berhasil menampilkan data pengungsian',
         'data': {'list_pengungsian': pengungsian}}
+
+
+@router.post('/', response_model=ResponseFormat)
+async def tambah_pengungsian(pengungsian: PengungsianIn):
+    db_pengungsian.put(jsonable_encoder(pengungsian))
+
+    return {
+        "status": 200,
+        "success": True,
+        "message": "Data pengungsian berhasil ditambahkan!",
+        "data": {
+            "data_pengungsian": pengungsian
+        }
+    }
