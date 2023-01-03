@@ -1,6 +1,6 @@
 import uvicorn
 from v1.router import router as v1
-from v2.router import router as v2
+from v2.router import router as v2, akun
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
@@ -33,6 +33,7 @@ async def redirect_docs():
 
 
 app.include_router(v2)
+app.include_router(akun)
 
 if __name__ == "__main__":
     uvicorn.run(app)
