@@ -36,13 +36,21 @@ db = deta.Base("db_pengungsian")
 @router.get('/')
 async def contoh():
     res = db.fetch()
-    return {'message': 'berhasil', "data": res.items}
+
+    response = {
+        "status": 200,
+        "success": True,
+        "message": "Data pengungsian berhasil ditambahkan!",
+        "data": res.items
+    }
+
+    return response
 
 
-@router.post('/tambah')
+@router.post('/')
 async def tambah_pengungsian(params: PengungsianIn):
     db.put(jsonable_encoder(params))
-
+    
     response = {
         "status": 200,
         "success": True,
