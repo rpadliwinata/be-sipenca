@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
 
@@ -11,6 +12,19 @@ router = APIRouter(
     tags=["pengungsian"],
     dependencies=[Depends(get_current_user)],
 )
+
+
+@router.delete("/", response_model=ResponseFormat)
+async def delete_data(key: str):
+    res = db_pengungsian.fetch({'key': key})
+
+    db_pengungsian.delete(res.items[0]["key"])
+    return {
+        'message': "Berhasil hapus data pengungsian!",
+        'status': 200,
+        'success': True,
+        'data': {'list_pengungsian': res.items[0]}
+    }
 
 
 @router.get('/', response_model=ResponseFormat)
