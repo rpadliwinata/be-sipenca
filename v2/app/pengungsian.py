@@ -1,26 +1,15 @@
-from datetime import datetime
-from typing import List
-from uuid import UUID, uuid4
-
 from deta import Deta
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 
-from db import db_alamat, db_pengelola, db_pengungsian, db_profil, db_user
 from deps import get_current_user
-from drive import drive_pengungsian
-from v2.schemas.alamat import AlamatDB
-from v2.schemas.pengelola import PengelolaAdd, PengelolaDB, PengelolaOut
-from v2.schemas.pengungsian import (PengungsianDB, PengungsianGet,
-                                    PengungsianIn, PengungsianOut)
-from v2.schemas.user import UserOut
+from v2.schemas.pengungsian import PengungsianIn
 
 router = APIRouter(
     prefix="/pengungsian",
     tags=["pengungsian"],
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
 )
 
 
@@ -50,7 +39,7 @@ async def contoh():
 @router.post('/')
 async def tambah_pengungsian(params: PengungsianIn):
     db.put(jsonable_encoder(params))
-    
+
     response = {
         "status": 200,
         "success": True,
