@@ -1,10 +1,4 @@
 from fastapi import APIRouter, Depends
-from deps import get_current_user
-from v2.schemas.response import ResponseFormat
-from db import db_pengungsian
-from v2.schemas.pengungsian import PengungsianIn
-
-from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
 
 from db import db_pengungsian
@@ -40,19 +34,20 @@ async def getAllPengungsian():
         'status': 200,
         'success': True,
         'message': 'Berhasil menampilkan data pengungsian',
-        'data':{'list_pengungsian':pengungsian}}
+        'data': {'list_pengungsian': pengungsian}}
 
-@router.patch('/update', response_model= ResponseFormat)
+
+@router.patch('/update', response_model=ResponseFormat)
 async def update_date(key: str, pengungsian: PengungsianIn):
-  res = db_pengungsian.fetch({"key": key})
+    res = db_pengungsian.fetch({"key": key})
 
-  db_pengungsian.update(pengungsian.dict(), res.items[0]['key'])
+    db_pengungsian.update(pengungsian.dict(), res.items[0]['key'])
 
-  return {
-    "message": "Berhasil update data!",
-    'status': 200, 
-    'success': True,
-    'data':{'list_pengungsian':pengungsian}}
+    return {
+        "message": "Berhasil update data!",
+        'status': 200,
+        'success': True,
+        'data': {'list_pengungsian': pengungsian}}
 
 
 @router.post('/', response_model=ResponseFormat)
