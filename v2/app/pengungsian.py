@@ -1,27 +1,53 @@
-from uuid import uuid4, UUID
 from datetime import datetime
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile
-from fastapi.responses import StreamingResponse
-from pydantic import ValidationError
-from deps import get_current_user
-from v2.schemas.alamat import AlamatDB
-from v2.schemas.pengelola import PengelolaDB, PengelolaAdd, PengelolaOut
-from v2.schemas.pengungsian import PengungsianGet, PengungsianIn, PengungsianDB, PengungsianOut
-from v2.schemas.user import UserOut
-from db import db_profil, db_pengelola, db_pengungsian, db_alamat, db_user
-from drive import drive_pengungsian
+from uuid import UUID, uuid4
 
+from deta import Deta
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, ValidationError
+
+from db import db_alamat, db_pengelola, db_pengungsian, db_profil, db_user
+from deps import get_current_user
+from drive import drive_pengungsian
+from v2.schemas.alamat import AlamatDB
+from v2.schemas.pengelola import PengelolaAdd, PengelolaDB, PengelolaOut
+from v2.schemas.pengungsian import (PengungsianDB, PengungsianGet,
+                                    PengungsianIn, PengungsianOut)
+from v2.schemas.user import UserOut
 
 router = APIRouter(
     prefix="/pengungsian",
     tags=["pengungsian"],
-    dependencies=[Depends(get_current_user)],
+    # dependencies=[Depends(get_current_user)],
 )
+
+
+class Data(BaseModel):
+    username: str
+    role: str
+
+
+deta = Deta("c0xyaz4k_HiLWrZZpCCXESBZZXe6LAsMcSp3dnx1f")
+db = deta.Base("db_pengungsian")
 
 
 @router.get('/')
 async def contoh():
-    return {'message': 'berhasil'}
+    res = db.fetch()
+    return {'message': 'berhasil', "data": res.items}
 
 
+@router.post('/tambah')
+async def tambah_pengungsian(params: PengungsianIn):
+    db.put(jsonable_encoder(params))
+
+    response = {
+        "status": 200,
+        "success": True,
+        "message": "Data pengungsian berhasil ditambahkan!",
+        "data": params
+    }
+
+    return response

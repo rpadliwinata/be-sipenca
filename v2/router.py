@@ -8,5 +8,3 @@ router = APIRouter(
 )
 
 router.include_router(router_pengungsian)
-
-
