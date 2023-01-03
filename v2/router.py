@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from v2.app.pengungsian import router as router_pengungsian
+from v2.app.akun import router as router_akun
 
 
 router = APIRouter(
@@ -8,5 +9,6 @@ router = APIRouter(
 )
 
 router.include_router(router_pengungsian)
+router.include_router(router_akun)
 
 
