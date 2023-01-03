@@ -12,7 +12,7 @@ router = APIRouter(
 
 @router.post("/approve/akun", response_model=UserOut)
 async def approve_akun(data: PengelolaInput, user: UserOut = Depends(get_current_user)):
-    req_user = db_user.fetch({'uuid_': data.uuid_})
+    req_user = db_user.fetch({'uuid_': data.uuid_}) #untuk tampil data berdasarkan id
     if len(req_user.items) == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
