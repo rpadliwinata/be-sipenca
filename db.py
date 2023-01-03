@@ -13,6 +13,7 @@ db_pengungsian = deta.Base("db_pengungsian")
 db_penyakit = deta.Base("db_penyakit")
 db_profil = deta.Base("db_profil")
 db_role = deta.Base("db_role")
+db_petugas = deta.Base("db_petugas")
 
 
 

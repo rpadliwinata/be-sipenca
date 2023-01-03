@@ -14,7 +14,7 @@ class PengungsianDB(Base):
 
 
 class PengungsianIn(BaseModel):
-    alamat: AlamatOut
+    alamat: str
     nama_tempat: str
     kapasitas_tempat: int
 

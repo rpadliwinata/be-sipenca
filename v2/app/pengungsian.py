@@ -1,14 +1,13 @@
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import StreamingResponse
-from pydantic import ValidationError
 from deps import get_current_user
-from db import db_pengungsian
 from deta import Deta
 from fastapi import FastAPI
 from v2.schemas import pengungsian
 from v2.schemas.response import ResponseFormat
-from v2.schemas.pengungsian import PengungsianIn, PengungsianOut
+from deta import Deta
+from fastapi import APIRouter, Depends
+from deps import get_current_user
 
 deta = Deta("c0xyaz4k_HiLWrZZpCCXESBZZXe6LAsMcSp3dnx1f")
 db = deta.Base("db_pengungsian")
@@ -31,3 +30,6 @@ async def delete_data(key: str):
         'success' :True,
         'data': {'list_pengungsian':pengungsian}
     }
+
+
+
