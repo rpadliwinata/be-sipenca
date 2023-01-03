@@ -4,6 +4,7 @@
 /app/__pycache__
 settings.py
 /v1/__pycache__
+/v1/app/__pycache__
 /v1/schemas/__pycache__
 /v2/__pycache__
 /v2/app/__pycache__
