@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from deps import get_current_user
-from v1.schemas.profil import ProfilIn
-from v1.schemas.user import UserOut
+from v2.schemas.profil import ProfilIn
+from v2.schemas.user import UserOut
 from db import db_profil
 
 router = APIRouter(

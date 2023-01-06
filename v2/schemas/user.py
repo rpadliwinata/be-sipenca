@@ -20,6 +20,7 @@ class UserDB(Base):
     email: EmailStr
     hashed_password: str
     is_active: bool
+    is_join: bool
 
 
 class UserAuth(BaseModel):
@@ -35,6 +36,7 @@ class UserOut(BaseModel):
     username: str
     email: EmailStr
     is_active: Union[bool, None] = False
+    is_join: bool
     role: Union[str, None] = None
 
 

@@ -14,6 +14,7 @@ class ProfilDB(Base):
     nama_lengkap: Union[str, None] = None
     kota_lahir: Union[str, None] = None
     tanggal_lahir: Union[date, None] = None
+    role: Union[str, None] = None
 
 
 class ProfilIn(BaseModel):
@@ -22,3 +23,4 @@ class ProfilIn(BaseModel):
     nama_lengkap: Union[str, None] = None
     kota_lahir: Union[str, None] = None
     tanggal_lahir: Union[date, str, None] = None
+    role: Union[str, None] = None

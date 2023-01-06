@@ -11,15 +11,8 @@ class UserDB(Base):
     email: EmailStr
     hashed_password: str
     is_active: bool
-
-
-class UserDB(Base):
-    profil_user: Union[UUID, str, None] = None
-    role: Union[UUID, str, None] = None
-    username: str
-    email: EmailStr
-    hashed_password: str
-    is_active: bool
+    is_join: bool
+    
 
 
 class UserAuth(BaseModel):
@@ -35,6 +28,7 @@ class UserOut(BaseModel):
     username: str
     email: EmailStr
     is_active: Union[bool, None] = False
+    is_join: bool
     role: Union[str, None] = None
     key: Union[UUID, str, None] = None
 

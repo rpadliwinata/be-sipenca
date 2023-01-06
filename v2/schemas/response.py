@@ -6,3 +6,9 @@ class ResponseFormat(BaseModel):
     success: bool
     message: str
     data: dict
+
+
+class CustomResponseFormat(BaseModel):
+    status: int
+    success: bool
+    message: str

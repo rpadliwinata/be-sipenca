@@ -14,6 +14,7 @@ db_penyakit = deta.Base("db_penyakit")
 db_profil = deta.Base("db_profil")
 db_role = deta.Base("db_role")
 db_petugas = deta.Base("db_petugas")
+db_m2m = deta.Base("db_m2m")
 
 
 

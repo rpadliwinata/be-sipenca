@@ -38,7 +38,8 @@ async def create_user(data: UserAuth):
         'username': data.username,
         'hashed_password': get_hashed_password(data.password),
         'role': data.role,
-        'is_active': False if data.role == "pengelola" else True
+        'is_active': False if data.role == "pengelola" else True,
+        'is_join': False
     }
     try:
         validated_new_user = UserDB(**new_user)
@@ -59,6 +60,7 @@ async def create_user(data: UserAuth):
     
     new_profile = {
         'uuid_': str(uuid4()),
+        'role': data.role,
         'created_at': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
         'created_by': new_user['uuid_'],
         'id_user': new_user['uuid_']

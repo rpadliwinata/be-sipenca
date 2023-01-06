@@ -27,7 +27,7 @@ async def delete_data(key: str):
 
 
 @router.get('/', response_model=ResponseFormat)
-async def getAllPengungsian():
+async def get_all_pengungsian():
     res = db_pengungsian.fetch()
     pengungsian = res.items
     return {
