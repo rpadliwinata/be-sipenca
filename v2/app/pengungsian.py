@@ -37,7 +37,7 @@ async def getAllPengungsian():
         'data': {'list_pengungsian': pengungsian}}
 
 
-@router.patch('/update', response_model=ResponseFormat)
+@router.patch('/', response_model=ResponseFormat)
 async def update_date(key: str, pengungsian: PengungsianIn):
     res = db_pengungsian.fetch({"key": key})
 
@@ -62,3 +62,4 @@ async def tambah_pengungsian(pengungsian: PengungsianIn):
             "data_pengungsian": pengungsian
         }
     }
+

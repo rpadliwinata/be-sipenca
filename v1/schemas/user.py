@@ -36,6 +36,7 @@ class UserOut(BaseModel):
     email: EmailStr
     is_active: Union[bool, None] = False
     role: Union[str, None] = None
+    key: Union[UUID, str, None] = None
 
 
 class UserUpdate(BaseModel):

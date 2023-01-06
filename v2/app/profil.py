@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.encoders import jsonable_encoder
 from deps import get_current_user
 from v1.schemas.profil import ProfilIn
 from v1.schemas.user import UserOut
@@ -20,7 +21,8 @@ async def create_profil(data: ProfilIn, user: UserOut = Depends(get_current_user
         )
     
     updates = data.dict()
-    updates['tanggal_lahir'] = updates['tanggal_lahir'].strftime("%d/%m/%Y")
+    # updates['tanggal_lahir'] = updates['tanggal_lahir'].strftime("%d/%m/%Y")
+    updates = jsonable_encoder(updates)
     db_profil.update(updates, req_profil.items[0]['key'])
     return updates
 

@@ -29,7 +29,7 @@ app.add_middleware(
 
 @app.get("/", include_in_schema=False)
 async def redirect_docs():
-    return RedirectResponse("https://0f9vta.deta.dev/docs")
+    return RedirectResponse("https://api.sipenca.com/docs")
 
 
 app.include_router(v2)

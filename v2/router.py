@@ -4,6 +4,7 @@ from v2.app.akun import router as router_akun
 from v2.app.pengungsian import router as router_pengungsian
 from v2.app.petugas import router as router_petugas
 from v2.app.profil import router as router_profil
+from v2.app.mengungsi import router as router_mengungsi
 
 router = APIRouter(
     prefix="/v2"
@@ -18,3 +19,4 @@ router.include_router(router_pengungsian)
 router.include_router(router_petugas)
 router.include_router(router_profil)
 akun.include_router(router_akun)
+akun.include_router(router_mengungsi)
