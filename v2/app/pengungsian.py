@@ -63,3 +63,15 @@ async def tambah_pengungsian(pengungsian: PengungsianIn):
         }
     }
 
+@router.patch('/', response_model=ResponseFormat)
+async def update_date(nama_tempat: str, pengungsian: PengungsianIn):
+    res = db_pengungsian.fetch({"nama_tempat": nama_tempat})
+
+    db_pengungsian.update(pengungsian.dict())
+
+    return {
+        "message": "Berhasil update data!",
+        'status': 200,
+        'success': True,
+        'data': {'list_pengungsian': pengungsian, 'tempat': res.items[0]['nama_tempat']}
+    }
