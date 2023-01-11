@@ -26,4 +26,12 @@ Teknologi yang digunakan adalah Python
 - [x] FR11 Sukarelawan dapat memilih pengelola
 - [ ] FR12 Admin harus dapat memvalidasi data pemilihan pengelola
 
+Flow lengkap
+1. Petugas register
+2. Buat pengungsian baru
+3. Admin acc pengungsiannya
+4. Warga register
+5. Warga lengkapi profil
+6. Warga join pengungsian
+7. Warga leave pengungsian
 
